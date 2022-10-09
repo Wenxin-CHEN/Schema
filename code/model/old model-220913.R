@@ -2,6 +2,7 @@
 
 # import packages
 library(tidyverse)
+library(reshape2)
 # set seed for random number generator
 set.seed(12)
 
@@ -37,7 +38,30 @@ thres_item_final = 14
 thres_schema = 35 # check thres_schema, make sure it is not too higher
 thres_schema_init = 40
 theta_shift = 3
-timevar = 0.0001
+timevar = 0.001
+timevar_list <- rep(timevar,30)
+
+### ppt 11
+# a_schema = 0.2
+# h_schema = 1000
+# Beta_N = 0.2
+# Beta_Var = 0.3
+# a_generic = 0.1
+# h_generic = 1500
+# Beta_gN = 0.1
+# Beta_gVar = 0.2
+# w = 0.3
+# Phi = 5
+# decay_speed = 0.999
+# decay_speed_thres = 0.999
+# thres_item_inter = 15
+# thres_item_final = 20
+# thres_schema = 35 # check thres_schema, make sure it is not too higher
+# thres_schema_init = 40
+# theta_shift = 3
+# timevar = 0.0001
+# timevar_list <- rep(timevar,30)
+
 theta_shift_list = seq(5,40,1)
 a_schema_list <- seq(a_schema*0.5, a_schema*1.5, a_schema*0.05)
 h_schema_list <- seq(h_schema*0.5, h_schema*1.5, h_schema*0.05)
@@ -52,8 +76,7 @@ decay_speed_list <- seq(0.999 , 1, 0.00001)
 decay_speed_thres_list <- seq(0.999 , 1, 0.000001)
 thres_schema_list <- seq(15,28,0.15)
 thres_item_final_list <- seq(4, 8, 0.1)
-# timevar_list <- seq(0.0001,0.00011,0.0000003)
-timevar_list <- seq()
+#timevar_list <- seq(0.0001,0.00011,0.0000003)
 Param.df <- data.frame(0, a_schema, h_schema, Beta_N, Beta_Var, a_generic, h_generic, 
                        Beta_gN, Beta_gVar, decay_speed, decay_speed_thres, thres_schema, thres_item_final)
 colnames(Param.df) <- c("SubjectID", "a_schema", "h_schema", "Beta_N", "Beta_Var", "a_generic", "h_generic", 
@@ -160,6 +183,7 @@ for (Subject in 1:length(timevar_list)) {
   
   # schemainfo contains conN (mean of confidence), conVar (variance of confidence), expN (mean of exploration time) and 
   # expVar (variance of exploration time)
+  #payoff = c(3, 4, 5, 2, 5, 6, 6, 2, 4, 3)
   #schemainfo$conN = c(5,4,3,6,3,2,2,6,4,5)/6
   # 0.2 = 2, 0.35 = 3, 0.5 = 4, 0.65 = 5, 0.8 = 6
   schemainfo$conN = c(0.65, 0.5, 0.35, 0.8, 0.35, 0.2, 0.2, 0.8, 0.5, 0.65)
@@ -179,7 +203,7 @@ for (Subject in 1:length(timevar_list)) {
   ThisRound = 1
   ##### when the agent has not finished the experiment, the loop continue as usual
   while (ThisRound <= max_Round){
-    
+  print(Subject)  
     #### firstly, go through the exploration phase 
     ## firstly, sample the confidence prior the exploration
     Con_PriorExp = mapply(rnorm, 1, mean = schemainfo$conN, sd = schemainfo$conVar)
@@ -393,7 +417,13 @@ for (Subject in 1:length(timevar_list)) {
   
 }
 
-# write_csv(ALL.df,'allresult.csv')
-# write_csv(Param.df, 'Paras.csv')
-# write_csv(confidence.df, 'confidence.csv')
-# write_csv(gconfidence.df, 'gconfidence.csv')
+if (!dir.exists(file.path("data","oldmodel"))){
+  dir.create(file.path("data","oldmodel"),recursive = T)
+}  
+simupath = file.path("data","oldmodel")
+
+
+write_csv(ALL.df,file.path(simupath,'allresult.csv'))
+write_csv(Param.df, file.path(simupath,'Paras.csv'))
+write_csv(confidence.df, file.path(simupath,'confidence.csv'))
+write_csv(gconfidence.df, file.path(simupath,'gconfidence.csv'))

@@ -1,0 +1,163 @@
+---
+title: "simpleplot"
+author: "Sky"
+date: "2022/9/9"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## parameter
+  a_schema = 0.2
+  h_schema = 1000
+  Beta_N = 0.2
+  Beta_Var = 0.3
+  a_generic = 0.1
+  h_generic = 1500
+  Beta_gN = 0.1
+  Beta_gVar = 0.2
+  w = 0.3
+  Phi = 20
+  decay_speed = 0.999
+  decay_speed_thres = 0.999
+  thres_item_inter = 6
+  thres_item_final = 14
+  thres_schema_init = 40
+  theta_shift = 3
+  timevar = 0.0001
+
+
+```{r cars}
+library(tidyverse)
+ALL.df <- read.csv("../data/model_nofamexp/test/L_expchangedonly/all_dwsch_added.csv")
+allresult <- ALL.df
+allresult$type = "model"
+allresult <- allresult %>% select("Subject","RT_1","RT_2","RT_3","RT_4","OB_1","OB_2","OB_3","OB_4","AS_1","AS_2","AS_3","AS_4","dwellmean_1","dwellmean_2","dwellmean_3","dwellmean_4","schema_payoff","AC","performance","type","novelty","afterbreak")
+colnames(allresult) <- c("ID","RT_1","RT_2","RT_3","RT_4","OB_1","OB_2","OB_3","OB_4","AS_1","AS_2","AS_3","AS_4","dwmean_1","dwmean_2","dwmean_3","dwmean_4","payoff","accuracy","performance","type","novelty","afterbreak")
+
+for (i in 1:750){
+  a = sample(1:length(allresult$ID),1)
+  allresult <- rbind(allresult,allresult[a,])
+}
+```
+
+```{r}
+exp <- read.csv("../data/new_exp/summary_painting.csv")
+exp <- exp %>% select("ID","RT_1","RT_2","RT_3","RT_4","OB_1","OB_2","OB_3","OB_4","AS_1","AS_2","AS_3","AS_4","dwmean_1","dwmean_2","dwmean_3","dwmean_4","payoff","accuracy","performance","type","novelty","afterbreak")
+exp$type = 'exp'
+
+allresult <- rbind(allresult,exp)
+colnames(allresult)[1] = 'Subject'
+```
+
+
+## reaction time
+
+
+```{r reaction time}
+# allresult %>% dplyr::select(Subject,RT_1:RT_4) %>%
+#   gather(RTphase,Reaction_Time,-Subject) %>%
+#   ggplot() +
+#   geom_boxplot(aes(RTphase,Reaction_Time)) +
+#   scale_y_continuous(limits = c(0,50))
+
+rt1 <- 
+  allresult %>% dplyr::select(Subject,type,RT_1:RT_4,afterbreak) %>%
+  gather(RTphase,Reaction_Time,-Subject,-type,-afterbreak) %>%
+  filter(Reaction_Time<500)
+rt2 <- allresult %>% dplyr::select(Subject,type,RT_1:RT_4,afterbreak) %>%
+  gather(RTphase,Reaction_Time,-Subject,-type,-afterbreak) %>%
+  filter(Reaction_Time<500) %>% 
+  group_by(RTphase) %>%
+  summarise(rtmean = mean(Reaction_Time))
+ggplot(data = rt1) +
+  geom_boxplot(aes(RTphase,Reaction_Time,fill=type),colour="darkblue") +
+  geom_line(data = rt2,aes(RTphase,rtmean,group=1),colour="#FF9999") +
+  scale_y_continuous(limits = c(0,50))+
+  theme(axis.text.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=.5,face="plain"),
+        axis.text.y = element_text(colour="black",size=20,angle=0,hjust=1,vjust=0,face="plain"),
+        axis.title.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="black",size=20,angle=90,hjust=.5,vjust=.5,face="plain"))+
+  facet_grid(~afterbreak)
+```
+
+```{r one group}
+rt1 <- 
+  allresult %>% dplyr::select(Subject,type,RT_1:RT_4,afterbreak) %>%
+  gather(RTphase,Reaction_Time,-Subject,-type,-afterbreak) %>%
+  filter(Reaction_Time<500,type == "model")
+rt2 <- allresult %>% dplyr::select(Subject,type,RT_1:RT_4,afterbreak) %>%
+  gather(RTphase,Reaction_Time,-Subject,-type,-afterbreak) %>%
+  filter(Reaction_Time<500,type == "model") %>% 
+  group_by(RTphase) %>%
+  summarise(rtmean = mean(Reaction_Time))
+ggplot(data = rt1) +
+  geom_boxplot(aes(RTphase,Reaction_Time,fill=type),colour="darkblue") +
+  geom_line(data = rt2,aes(RTphase,rtmean,group=1),colour="#FF9999") +
+  scale_y_continuous(limits = c(0,50))+
+  theme(axis.text.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=.5,face="plain"),
+        axis.text.y = element_text(colour="black",size=20,angle=0,hjust=1,vjust=0,face="plain"),
+        axis.title.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="black",size=20,angle=90,hjust=.5,vjust=.5,face="plain"))+
+  facet_grid(~afterbreak)
+```
+
+
+## OB
+```{r}
+
+allresult %>% dplyr::select(Subject,OB_1,type,afterbreak) %>%
+  gather(obphase,obnum,-Subject,-type,-afterbreak) %>%
+  ggplot() +
+  geom_bar(aes(obnum,fill=type),binwidth = 1,position = "identity",alpha=0.5)+
+  coord_cartesian(ylim=c(),xlim=c(0,21))+
+  theme(axis.text.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=.5,face="plain"),
+        axis.text.y = element_text(colour="black",size=20,angle=0,hjust=1,vjust=0,face="plain"),
+        axis.title.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="black",size=20,angle=90,hjust=.5,vjust=.5,face="plain"))
+```
+
+```{r}
+allresult %>% dplyr::select(Subject,OB_2:OB_4,type,afterbreak) %>%
+  gather(obphase,obnum,-Subject,-type,-afterbreak) %>%
+  ggplot() +
+  geom_histogram(aes(obnum,fill=type),binwidth = 1,position = "identity",alpha=0.5)+
+  facet_grid(afterbreak~obphase) +
+  coord_cartesian(ylim=c(0,120),xlim=c(0,21))+
+  theme(axis.text.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=.5,face="plain"),
+        axis.text.y = element_text(colour="black",size=20,angle=0,hjust=1,vjust=0,face="plain"),
+        axis.title.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="black",size=20,angle=90,hjust=.5,vjust=.5,face="plain"))
+```
+
+
+## AS
+
+```{r}
+allresult %>% dplyr::select(Subject,AS_1,type,afterbreak) %>%
+  gather(obphase,obnum,-Subject,-type,-afterbreak) %>%
+  ggplot() +
+  geom_histogram(aes(obnum,fill=type),binwidth = 1,position = "identity",alpha=0.5)+
+  facet_grid(afterbreak~obphase) +
+  coord_cartesian(ylim=c(0,30),xlim=c(0,150))+
+  theme(axis.text.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=.5,face="plain"),
+        axis.text.y = element_text(colour="black",size=20,angle=0,hjust=1,vjust=0,face="plain"),
+        axis.title.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="black",size=20,angle=90,hjust=.5,vjust=.5,face="plain")) 
+```
+
+```{r}
+allresult %>% dplyr::select(Subject,AS_2:AS_4,type,afterbreak) %>%
+  gather(obphase,obnum,-Subject,-type,-afterbreak) %>%
+  ggplot() +
+  geom_histogram(aes(obnum,fill=type),binwidth = 1,position = "identity",alpha=0.5)+
+  facet_grid(afterbreak~obphase) +
+  coord_cartesian(ylim=c(0,100),xlim=c(0,60))+
+  theme(axis.text.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=.5,face="plain"),
+        axis.text.y = element_text(colour="black",size=20,angle=0,hjust=1,vjust=0,face="plain"),
+        axis.title.x = element_text(colour="black",size=20,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="black",size=20,angle=90,hjust=.5,vjust=.5,face="plain")) 
+```
+

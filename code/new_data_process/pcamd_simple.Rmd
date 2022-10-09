@@ -1,0 +1,163 @@
+---
+title: "pca_new"
+author: "Sky"
+date: "2022/8/30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("FactoMineR")
+library("factoextra")
+library("corrplot")
+library("tidyverse")
+```
+
+# painting
+
+## data loading
+
+Here we calculate the mean by individual
+```{r data loading}
+pall <- readRDS("../../data/new_exp/p.rds")
+p_byid <- pall %>% 
+  group_by(ID,afterbreak) %>% summarise(across(OB_1:performance, mean)) %>%
+  mutate(across(OB_1:AS_4, ~round(.x,digits = 0)))
+```
+
+## PCA results
+
+First, we plot results without considering break
+```{r not consider break}
+pcacol <- pall %>% 
+  group_by(ID) %>% summarise(across(OB_1:performance, mean)) %>%
+  mutate(across(OB_1:AS_4, ~round(.x,digits = 0))) %>% ungroup() %>% select(OB_1:performance) 
+pall.pca <- PCA(pcacol,ncp = 8,graph = FALSE) # ncp is the number of dims kept in results
+eig.val <- get_eigenvalue(pall.pca)
+eig.val # eigen value
+fviz_eig(pall.pca, ylim = c(0, 50),addlabels = T)
+
+var <- get_pca_var(pall.pca)
+var$coord
+fviz_pca_var(pall.pca, col.var = "black",repel = TRUE)
+
+# contribution
+corrplot(var$contrib, is.corr=FALSE)
+
+# # Contributions of variables to PC1
+# fviz_contrib(pall.pca, choice = "var", axes = 1, top = 10)
+# # Contributions of variables to PC2
+# fviz_contrib(pall.pca, choice = "var", axes = 2, top = 10)
+# fviz_contrib(pall.pca, choice = "var", axes = 3, top = 10)
+# fviz_contrib(pall.pca, choice = "var", axes = 4, top = 10)
+# fviz_contrib(pall.pca, choice = "var", axes = 5, top = 10)
+
+```
+
+Here we plot results and separate them by break
+### before break
+```{r before break}
+pcacol <- p_byid %>% ungroup() %>% filter(afterbreak == 0) %>%
+  select(OB_1:performance) 
+pall.pca <- PCA(pcacol,ncp = 8,graph = FALSE) # ncp is the number of dims kept in results
+eig.val <- get_eigenvalue(pall.pca)
+eig.val # eigen value
+fviz_eig(pall.pca, ylim = c(0, 50),addlabels = T)
+
+var <- get_pca_var(pall.pca)
+var$coord
+fviz_pca_var(pall.pca, col.var = "black",repel = TRUE)
+
+# contribution
+corrplot(var$contrib, is.corr=FALSE)
+```
+
+### after break
+```{r after break}
+pcacol <- p_byid %>% ungroup() %>% filter(afterbreak == 1) %>%
+  select(OB_1:performance) 
+pall.pca <- PCA(pcacol,ncp = 8,graph = FALSE) # ncp is the number of dims kept in results
+eig.val <- get_eigenvalue(pall.pca)
+eig.val # eigen value
+fviz_eig(pall.pca, ylim = c(0, 50),addlabels = T)
+
+var <- get_pca_var(pall.pca)
+var$coord
+fviz_pca_var(pall.pca, col.var = "black",repel = TRUE)
+
+# contribution
+corrplot(var$contrib, is.corr=FALSE)
+```
+
+# quote
+```{r data loading2}
+pall <- read_rds("../../data/new_exp/q.rds")
+p_byid <- pall %>% 
+  group_by(ID,afterbreak) %>% summarise(across(OB_1:performance, mean)) %>%
+  mutate(across(OB_1:AS_4, ~round(.x,digits = 0)))
+```
+
+## PCA results
+
+First, we plot results without considering break
+```{r not consider break2}
+pcacol <- pall %>% 
+  group_by(ID) %>% summarise(across(OB_1:performance, mean)) %>%
+  mutate(across(OB_1:AS_4, ~round(.x,digits = 0))) %>% ungroup() %>% select(OB_1:performance) 
+pall.pca <- PCA(pcacol,ncp = 8,graph = FALSE) # ncp is the number of dims kept in results
+eig.val <- get_eigenvalue(pall.pca)
+eig.val # eigen value
+fviz_eig(pall.pca, ylim = c(0, 50),addlabels = T)
+
+var <- get_pca_var(pall.pca)
+var$coord
+fviz_pca_var(pall.pca, col.var = "black",repel = TRUE)
+
+# contribution
+corrplot(var$contrib, is.corr=FALSE)
+
+# # Contributions of variables to PC1
+# fviz_contrib(pall.pca, choice = "var", axes = 1, top = 10)
+# # Contributions of variables to PC2
+# fviz_contrib(pall.pca, choice = "var", axes = 2, top = 10)
+# fviz_contrib(pall.pca, choice = "var", axes = 3, top = 10)
+# fviz_contrib(pall.pca, choice = "var", axes = 4, top = 10)
+# fviz_contrib(pall.pca, choice = "var", axes = 5, top = 10)
+
+```
+
+Here we plot results and separate them by break
+### before break
+```{r before break2}
+pcacol <- p_byid %>% ungroup() %>% filter(afterbreak == 0) %>%
+  select(OB_1:performance) 
+pall.pca <- PCA(pcacol,ncp = 8,graph = FALSE) # ncp is the number of dims kept in results
+eig.val <- get_eigenvalue(pall.pca)
+eig.val # eigen value
+fviz_eig(pall.pca, ylim = c(0, 50),addlabels = T)
+
+var <- get_pca_var(pall.pca)
+var$coord
+fviz_pca_var(pall.pca, col.var = "black",repel = TRUE)
+
+# contribution
+corrplot(var$contrib, is.corr=FALSE)
+```
+
+### after break
+```{r after break2}
+pcacol <- p_byid %>% ungroup() %>% filter(afterbreak == 1) %>%
+  select(OB_1:performance) 
+pall.pca <- PCA(pcacol,ncp = 8,graph = FALSE) # ncp is the number of dims kept in results
+eig.val <- get_eigenvalue(pall.pca)
+eig.val # eigen value
+fviz_eig(pall.pca, ylim = c(0, 50),addlabels = T)
+
+var <- get_pca_var(pall.pca)
+var$coord
+fviz_pca_var(pall.pca, col.var = "black",repel = TRUE)
+
+# contribution
+corrplot(var$contrib, is.corr=FALSE)
+```
+
